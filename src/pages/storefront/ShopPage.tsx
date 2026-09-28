@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, SlidersHorizontal, Grid3X3, LayoutList, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -9,21 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
-const allProducts = [
-  { id: 1, name: "Premium Cotton Shirt", category: "Men", type: "Shirt", price: 1299, originalPrice: 1599, isNew: true },
-  { id: 2, name: "Slim Fit Denim Jeans", category: "Men", type: "Pants", price: 1899, isSale: true, originalPrice: 2499 },
-  { id: 3, name: "Floral Print Kurta", category: "Women", type: "Kurta", price: 1599, isNew: true },
-  { id: 4, name: "Kids Casual T-Shirt", category: "Children", type: "T-Shirt", price: 499, originalPrice: 699, isSale: true },
-  { id: 5, name: "Formal Blazer", category: "Men", type: "Blazer", price: 3999 },
-  { id: 6, name: "Embroidered Saree", category: "Women", type: "Saree", price: 5999, isNew: true },
-  { id: 7, name: "Sports Track Pants", category: "Men", type: "Pants", price: 899, originalPrice: 1199, isSale: true },
-  { id: 8, name: "Designer Lehenga", category: "Women", type: "Lehenga", price: 12999 },
-  { id: 9, name: "Polo T-Shirt", category: "Men", type: "T-Shirt", price: 799, isNew: true },
-  { id: 10, name: "Cotton Palazzo", category: "Women", type: "Pants", price: 999, originalPrice: 1299, isSale: true },
-  { id: 11, name: "Kids Denim Jacket", category: "Children", type: "Jacket", price: 1599 },
-  { id: 12, name: "Ethnic Sherwani", category: "Men", type: "Sherwani", price: 8999, isNew: true },
-];
+import { productsApi } from "@/lib/api";
+import type { Product } from "@/lib/api/types";
 
 const categories = ["Men", "Women", "Children"];
 const types = ["Shirt", "Pants", "T-Shirt", "Kurta", "Saree", "Blazer", "Lehenga", "Jacket", "Sherwani"];
@@ -35,23 +23,25 @@ export default function ShopPage() {
   const [priceRange, setPriceRange] = useState([0, 15000]);
   const [gridView, setGridView] = useState(true);
 
-  const filteredProducts = allProducts.filter((product) => {
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["shop_products"],
+    queryFn: async () => {
+      const res = await productsApi.listPublic({ limit: 100 });
+      return res.items as Product[];
+    },
+  });
+
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
-    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(product.type);
+    const matchesCategory =
+      selectedCategories.length === 0 || selectedCategories.includes(product.category ?? "");
     const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
-    return matchesSearch && matchesCategory && matchesType && matchesPrice;
+    return matchesSearch && matchesCategory && matchesPrice;
   });
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
-    );
-  };
-
-  const toggleType = (type: string) => {
-    setSelectedTypes(prev => 
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
     );
   };
 
@@ -62,7 +52,8 @@ export default function ShopPage() {
     setSearch("");
   };
 
-  const activeFiltersCount = selectedCategories.length + selectedTypes.length + (priceRange[0] > 0 || priceRange[1] < 15000 ? 1 : 0);
+  const activeFiltersCount =
+    selectedCategories.length + selectedTypes.length + (priceRange[0] > 0 || priceRange[1] < 15000 ? 1 : 0);
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -72,29 +63,14 @@ export default function ShopPage() {
         <div className="space-y-2">
           {categories.map((category) => (
             <div key={category} className="flex items-center space-x-2">
-              <Checkbox 
+              <Checkbox
                 id={category}
                 checked={selectedCategories.includes(category)}
                 onCheckedChange={() => toggleCategory(category)}
               />
-              <Label htmlFor={category} className="text-sm text-foreground cursor-pointer">{category}</Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Product Types */}
-      <div>
-        <h4 className="font-semibold text-foreground mb-3">Product Type</h4>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {types.map((type) => (
-            <div key={type} className="flex items-center space-x-2">
-              <Checkbox 
-                id={type}
-                checked={selectedTypes.includes(type)}
-                onCheckedChange={() => toggleType(type)}
-              />
-              <Label htmlFor={type} className="text-sm text-foreground cursor-pointer">{type}</Label>
+              <Label htmlFor={category} className="text-sm text-foreground cursor-pointer">
+                {category}
+              </Label>
             </div>
           ))}
         </div>
@@ -127,14 +103,12 @@ export default function ShopPage() {
   return (
     <div className="container py-8">
       {/* Page Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Shop All Products</h1>
         <p className="text-muted-foreground mt-2">
-          Showing {filteredProducts.length} of {allProducts.length} products
+          {isLoading
+            ? "Loading products..."
+            : `Showing ${filteredProducts.length} of ${products.length} products`}
         </p>
       </motion.div>
 
@@ -202,21 +176,16 @@ export default function ShopPage() {
       </motion.div>
 
       {/* Active Filters */}
-      {activeFiltersCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-wrap gap-2 mb-6"
-        >
+      {selectedCategories.length > 0 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2 mb-6">
           {selectedCategories.map((category) => (
-            <Badge key={category} variant="secondary" className="gap-1 cursor-pointer" onClick={() => toggleCategory(category)}>
+            <Badge
+              key={category}
+              variant="secondary"
+              className="gap-1 cursor-pointer"
+              onClick={() => toggleCategory(category)}
+            >
               {category}
-              <X className="w-3 h-3" />
-            </Badge>
-          ))}
-          {selectedTypes.map((type) => (
-            <Badge key={type} variant="secondary" className="gap-1 cursor-pointer" onClick={() => toggleType(type)}>
-              {type}
               <X className="w-3 h-3" />
             </Badge>
           ))}
@@ -237,10 +206,20 @@ export default function ShopPage() {
 
         {/* Products Grid */}
         <div className="flex-1">
-          {filteredProducts.length > 0 ? (
-            <div className={`grid gap-6 ${gridView ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+          {isLoading ? (
+            <div className="text-center py-16 text-muted-foreground">Loading products...</div>
+          ) : filteredProducts.length > 0 ? (
+            <div className={`grid gap-6 ${gridView ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
               {filteredProducts.map((product, index) => (
-                <ProductCard key={product.id} {...product} index={index} />
+                <ProductCard
+                  key={product._id}
+                  id={product._id}
+                  name={product.name}
+                  category={product.category ?? ""}
+                  price={product.price}
+                  image={product.imageUrl ?? undefined}
+                  index={index}
+                />
               ))}
             </div>
           ) : (
