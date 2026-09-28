@@ -1,27 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Truck, Shield, RefreshCw, CreditCard } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/storefront/ProductCard";
+import { productsApi } from "@/lib/api";
+import type { Product } from "@/lib/api/types";
 import heroBanner from "@/assets/hero-banner.jpg";
-
-const featuredProducts = [
-  { id: 1, name: "Premium Cotton Shirt", category: "Men", price: 1299, originalPrice: 1599, isNew: true },
-  { id: 2, name: "Slim Fit Denim Jeans", category: "Men", price: 1899, isSale: true, originalPrice: 2499 },
-  { id: 3, name: "Floral Print Kurta", category: "Women", price: 1599, isNew: true },
-  { id: 4, name: "Kids Casual T-Shirt", category: "Children", price: 499, originalPrice: 699, isSale: true },
-  { id: 5, name: "Formal Blazer", category: "Men", price: 3999 },
-  { id: 6, name: "Embroidered Saree", category: "Women", price: 5999, isNew: true },
-  { id: 7, name: "Sports Track Pants", category: "Men", price: 899, originalPrice: 1199, isSale: true },
-  { id: 8, name: "Designer Lehenga", category: "Women", price: 12999 },
-];
-
-const categories = [
-  { name: "Men's Collection", count: 156, emoji: "👔" },
-  { name: "Women's Collection", count: 189, emoji: "👗" },
-  { name: "Kids' Collection", count: 87, emoji: "🧒" },
-  { name: "Accessories", count: 45, emoji: "👜" },
-];
 
 const features = [
   { icon: Truck, title: "Free Shipping", description: "On orders above ₹999" },
@@ -31,20 +16,28 @@ const features = [
 ];
 
 export default function HomePage() {
+  const { data: featured = [] } = useQuery({
+    queryKey: ["featured_products"],
+    queryFn: async () => {
+      const res = await productsApi.listPublic({ limit: 8 });
+      return res.items as Product[];
+    },
+  });
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[500px] overflow-hidden">
         <div className="absolute inset-0">
-          <img 
-            src={heroBanner} 
-            alt="Fashion Collection" 
+          <img
+            src={heroBanner}
+            alt="Fashion Collection"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
         </div>
         <div className="container relative h-full flex items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
@@ -55,7 +48,7 @@ export default function HomePage() {
               Elevate Your <span className="text-gradient">Style</span>
             </h1>
             <p className="text-muted-foreground text-lg mt-4">
-              Discover our premium collection of clothing designed for comfort and elegance. 
+              Discover our premium collection of clothing designed for comfort and elegance.
               Quality fabrics, trendy designs at affordable prices.
             </p>
             <div className="flex gap-4 mt-8">
@@ -100,8 +93,52 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories */}
+      {/* Featured Products from API */}
       <section className="py-16">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold text-foreground">Featured Products</h2>
+            <p className="text-muted-foreground mt-2">Handpicked picks from our latest collection</p>
+          </motion.div>
+
+          {featured.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              No products available yet. Check back soon!
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {featured.map((product, index) => (
+                <ProductCard
+                  key={product._id}
+                  id={product._id}
+                  name={product.name}
+                  category={product.category ?? ""}
+                  price={product.price}
+                  image={product.imageUrl ?? undefined}
+                  index={index}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="text-center mt-10">
+            <Link to="/shop">
+              <Button variant="outline" size="lg" className="gap-2">
+                View All Products
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="py-16 bg-card">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -114,7 +151,12 @@ export default function HomePage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {categories.map((category, index) => (
+            {[
+              { name: "Men's Collection", emoji: "👔", category: "Men" },
+              { name: "Women's Collection", emoji: "👗", category: "Women" },
+              { name: "Kids' Collection", emoji: "🧒", category: "Children" },
+              { name: "Sale Items", emoji: "🏷️", category: "all" },
+            ].map((category, index) => (
               <motion.div
                 key={category.name}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -122,76 +164,16 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Link 
-                  to={`/shop?category=${category.name.split("'")[0].toLowerCase()}`}
-                  className="block bg-card border border-border rounded-xl p-6 text-center hover:border-primary/50 hover:shadow-glow transition-all duration-300 group"
-                >
-                  <span className="text-5xl">{category.emoji}</span>
-                  <h3 className="font-semibold text-foreground mt-4">{category.name}</h3>
-                  <p className="text-sm text-muted-foreground">{category.count} items</p>
+                <Link to={`/shop?category=${category.category}`}>
+                  <div className="bg-background border border-border rounded-xl p-8 text-center hover:border-primary/40 transition-colors cursor-pointer">
+                    <div className="text-5xl mb-4">{category.emoji}</div>
+                    <h3 className="font-semibold text-foreground">{category.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Shop now →</p>
+                  </div>
                 </Link>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-16 bg-card/50">
-        <div className="container">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex items-center justify-between mb-12"
-          >
-            <div>
-              <h2 className="text-3xl font-bold text-foreground">Featured Products</h2>
-              <p className="text-muted-foreground mt-2">Handpicked styles just for you</p>
-            </div>
-            <Link to="/shop">
-              <Button variant="outline" className="gap-2">
-                View All
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product, index) => (
-              <ProductCard key={product.id} {...product} index={index} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="container">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="relative rounded-2xl overflow-hidden gradient-hero p-12 md:p-16 text-center"
-          >
-            <div className="absolute inset-0 gradient-primary opacity-10" />
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                Get 20% Off Your First Order
-              </h2>
-              <p className="text-muted-foreground mt-4 max-w-lg mx-auto">
-                Sign up for our newsletter and receive an exclusive discount code for your first purchase.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-                <Link to="/register">
-                  <Button size="lg" className="gap-2">
-                    Create Account
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
     </div>
