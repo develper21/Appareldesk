@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, MoreVertical, Eye, Edit, Trash2, Calendar } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { purchaseOrdersApi, contactsApi } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { refName } from "@/lib/api/types";
+import type { Contact, PurchaseOrder } from "@/lib/api/types";
 
 const statusStyles: Record<string, string> = {
   draft: "bg-muted text-muted-foreground border-muted",
@@ -29,39 +32,31 @@ export default function PurchaseOrdersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: purchaseOrders = [], isLoading } = useQuery({
+  const { data: purchaseOrdersData, isLoading } = useQuery({
     queryKey: ["purchase_orders"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("purchase_orders")
-        .select("*, contacts(name)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => purchaseOrdersApi.list({ limit: 100 }),
   });
 
-  const { data: vendors = [] } = useQuery({
+  const { data: vendorsData } = useQuery({
     queryKey: ["vendors"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contacts")
-        .select("id, name")
-        .eq("contact_type", "vendor");
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => contactsApi.list({ contactType: "vendor", limit: 200 }),
   });
+
+  const purchaseOrders: PurchaseOrder[] = purchaseOrdersData?.items ?? [];
+  const vendors: Contact[] = vendorsData?.items ?? [];
+
+  const filtered = purchaseOrders.filter((po) =>
+    po.poNumber?.toLowerCase().includes(search.toLowerCase()) ||
+    refName(po.vendorId).toLowerCase().includes(search.toLowerCase()),
+  );
 
   const createMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("purchase_orders").insert({
-        vendor_id: vendorId,
-        po_number: "",
+    mutationFn: () =>
+      purchaseOrdersApi.create({
+        vendorId,
+        items: [], // items can be added in a detailed PO editor later
         notes,
-      });
-      if (error) throw error;
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchase_orders"] });
       setDialogOpen(false);
@@ -69,32 +64,23 @@ export default function PurchaseOrdersPage() {
       setNotes("");
       toast({ title: "Purchase Order created" });
     },
-    onError: (err: any) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+    onError: (err) => toast({ title: "Error", description: getApiErrorMessage(err), variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("purchase_orders").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => purchaseOrdersApi.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchase_orders"] });
       toast({ title: "Purchase Order deleted" });
     },
+    onError: (err) => toast({ title: "Error", description: getApiErrorMessage(err), variant: "destructive" }),
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "draft" | "confirmed" | "received" | "cancelled" }) => {
-      const { error } = await supabase.from("purchase_orders").update({ status }).eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: ({ id, status }: { id: string; status: string }) => purchaseOrdersApi.updateStatus(id, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["purchase_orders"] }),
+    onError: (err) => toast({ title: "Error", description: getApiErrorMessage(err), variant: "destructive" }),
   });
-
-  const filtered = purchaseOrders.filter((po: any) =>
-    po.po_number?.toLowerCase().includes(search.toLowerCase()) ||
-    po.contacts?.name?.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="space-y-6">
@@ -115,7 +101,7 @@ export default function PurchaseOrdersPage() {
                 <Select value={vendorId} onValueChange={setVendorId}>
                   <SelectTrigger><SelectValue placeholder="Select vendor" /></SelectTrigger>
                   <SelectContent>
-                    {vendors.map((v: any) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                    {vendors.map((v) => <SelectItem key={v._id} value={v._id}>{v.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -151,25 +137,27 @@ export default function PurchaseOrdersPage() {
               <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No purchase orders found</TableCell></TableRow>
-            ) : filtered.map((po: any) => (
-              <TableRow key={po.id} className="border-border hover:bg-secondary/50">
-                <TableCell className="font-medium text-foreground">{po.po_number}</TableCell>
-                <TableCell className="text-foreground">{po.contacts?.name}</TableCell>
-                <TableCell><div className="flex items-center gap-2 text-muted-foreground"><Calendar className="w-4 h-4" />{new Date(po.created_at).toLocaleDateString()}</div></TableCell>
-                <TableCell className="text-foreground font-medium">₹{Number(po.total_amount).toLocaleString()}</TableCell>
-                <TableCell><Badge variant="outline" className={statusStyles[po.status]}>{po.status}</Badge></TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button></DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: po.id, status: "confirmed" })}><Eye className="w-4 h-4 mr-2" />Confirm</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: po.id, status: "received" })}><Edit className="w-4 h-4 mr-2" />Mark Received</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive" onClick={() => deleteMutation.mutate(po.id)}><Trash2 className="w-4 h-4 mr-2" />Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+            ) : (
+              filtered.map((po) => (
+                <TableRow key={po._id} className="border-border hover:bg-secondary/50">
+                  <TableCell className="font-medium text-foreground">{po.poNumber}</TableCell>
+                  <TableCell className="text-foreground">{refName(po.vendorId)}</TableCell>
+                  <TableCell><div className="flex items-center gap-2 text-muted-foreground"><Calendar className="w-4 h-4" />{new Date(po.createdAt).toLocaleDateString()}</div></TableCell>
+                  <TableCell className="text-foreground font-medium">₹{po.totalAmount.toLocaleString()}</TableCell>
+                  <TableCell><Badge variant="outline" className={statusStyles[po.status]}>{po.status}</Badge></TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: po._id, status: "confirmed" })}><Eye className="w-4 h-4 mr-2" />Confirm</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: po._id, status: "received" })}><Edit className="w-4 h-4 mr-2" />Mark Received</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => deleteMutation.mutate(po._id)}><Trash2 className="w-4 h-4 mr-2" />Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </motion.div>
