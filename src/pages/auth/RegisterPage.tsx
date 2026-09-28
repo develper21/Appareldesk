@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/lib/auth";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function RegisterPage() {
@@ -24,10 +25,10 @@ export default function RegisterPage() {
     const { error } = await signUp(formData.email, formData.password, formData.name, formData.mobile);
     setLoading(false);
     if (error) {
-      toast({ title: "Registration failed", description: error.message, variant: "destructive" });
+      toast({ title: "Registration failed", description: getApiErrorMessage(error), variant: "destructive" });
     } else {
-      toast({ title: "Account created!", description: "Please check your email to verify your account." });
-      navigate("/login");
+      toast({ title: "Account created!", description: "Welcome to ApparelDesk!" });
+      navigate("/");
     }
   };
 
