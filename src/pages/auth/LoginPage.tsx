@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -24,7 +25,7 @@ export default function LoginPage() {
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      toast({ title: "Login failed", description: getApiErrorMessage(error), variant: "destructive" });
     } else {
       toast({ title: "Welcome back!" });
       navigate("/");
