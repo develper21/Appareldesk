@@ -9,22 +9,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const recentOrders = [
-  { id: "ORD-001", customer: "Rahul Sharma", amount: "₹4,500", status: "Completed", date: "Today" },
-  { id: "ORD-002", customer: "Priya Patel", amount: "₹2,800", status: "Processing", date: "Today" },
-  { id: "ORD-003", customer: "Amit Kumar", amount: "₹6,200", status: "Pending", date: "Yesterday" },
-  { id: "ORD-004", customer: "Neha Singh", amount: "₹3,150", status: "Completed", date: "Yesterday" },
-  { id: "ORD-005", customer: "Vikram Joshi", amount: "₹8,900", status: "Shipped", date: "2 days ago" },
-];
+export interface RecentOrderRow {
+  id: string;
+  customer: string;
+  amount: string;
+  status: string;
+  date: string;
+}
 
 const statusStyles: Record<string, string> = {
-  Completed: "bg-success/10 text-success border-success/20",
-  Processing: "bg-info/10 text-info border-info/20",
-  Pending: "bg-warning/10 text-warning border-warning/20",
+  Draft: "bg-muted text-muted-foreground border-muted",
+  Confirmed: "bg-info/10 text-info border-info/20",
+  Processing: "bg-warning/10 text-warning border-warning/20",
   Shipped: "bg-primary/10 text-primary border-primary/20",
+  Delivered: "bg-success/10 text-success border-success/20",
+  Cancelled: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
-export function RecentOrdersTable() {
+export function RecentOrdersTable({ orders = [] }: { orders?: RecentOrderRow[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -47,19 +49,27 @@ export function RecentOrdersTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {recentOrders.map((order) => (
-            <TableRow key={order.id} className="border-border hover:bg-secondary/50 cursor-pointer">
-              <TableCell className="font-medium text-foreground">{order.id}</TableCell>
-              <TableCell className="text-foreground">{order.customer}</TableCell>
-              <TableCell className="text-foreground">{order.amount}</TableCell>
-              <TableCell>
-                <Badge variant="outline" className={statusStyles[order.status]}>
-                  {order.status}
-                </Badge>
+          {orders.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                No orders yet
               </TableCell>
-              <TableCell className="text-muted-foreground">{order.date}</TableCell>
             </TableRow>
-          ))}
+          ) : (
+            orders.map((order) => (
+              <TableRow key={order.id} className="border-border hover:bg-secondary/50 cursor-pointer">
+                <TableCell className="font-medium text-foreground">{order.id}</TableCell>
+                <TableCell className="text-foreground">{order.customer}</TableCell>
+                <TableCell className="text-foreground">{order.amount}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={statusStyles[order.status] ?? "bg-muted text-muted-foreground border-muted"}>
+                    {order.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">{order.date}</TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </motion.div>
