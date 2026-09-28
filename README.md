@@ -1,73 +1,97 @@
-# Welcome to your Lovable project
+# ApparelDesk
 
-## Project info
+Full-stack apparel store & inventory management platform.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+- **Frontend**: React + Vite + TypeScript + Tailwind + shadcn/ui (storefront + admin dashboard)
+- **Backend**: NestJS + MongoDB (Mongoose) + JWT auth (`server/`)
 
-## How can I edit this code?
+## Project structure
 
-There are several ways of editing your application.
+`grp``
+├── src/                  # React frontend
+│   ├── lib/api/          # API client, endpoint modules, shared types
+│   ├── lib/auth.tsx      # JWT auth context (login/register/session)
+│   ├── pages/storefront/ # Home, Shop, Cart, My Orders
+│   ├── pages/dashboard/  # Products, Contacts, Orders, Invoices, Bills, Payments, Reports...
+│   └── pages/auth/       # Login, Register
+└── server/               # NestJS backend
+    └── src/
+        ├── common/       # Guards (JWT, Roles), decorators, DTOs
+        ├── modules/      # auth, users, products, contacts, orders,
+        │                 # purchase-orders, invoices, bills, payments,
+        │                 # payment-terms, discount-offers, notifications,
+        │                 # settings, dashboard
+        └── database/     # Seed script
+grp```
 
-**Use Lovable**
+## Getting started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### 1. Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+- Node.js 20+
+- MongoDB running locally (or an Atlas URI)
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# quick local MongoDB via Docker
+docker run -d --name appareldesk-mongo -p 27017:27017 -v appareldesk_mongo_data:/data/db mongo:7
 ```
 
-**Edit a file directly in GitHub**
+### 2. Backend
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+cd server
+cp .env.example .env        # then edit values if needed
+npm install
+npm run seed                # demo data + admin account
+npm run start:dev           # API at http://localhost:3001/api
+```
 
-**Use GitHub Codespaces**
+Seeded accounts:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Role     | Email                     | Password    |
+|----------|---------------------------|-------------|
+| Admin    | admin@appareldesk.com     | admin123    |
+| Customer | customer@appareldesk.com  | customer123 |
 
-## What technologies are used for this project?
+### 3. Frontend
 
-This project is built with:
+```sh
+cd ..
+cp .env.example .env        # points to http://localhost:3001/api
+npm install
+npm run dev                 # app at http://localhost:8080 (proxies /api → :3001)
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Environment variables
 
-## How can I deploy this project?
+- `server/.env.example` — API config (port, MongoDB URI, JWT secret, CORS origins, seed credentials)
+- `.env.example` — frontend config (`VITE_API_URL`, timeout)
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## API overview
 
-## Can I connect a custom domain to my Lovable project?
+All routes are prefixed with `/api`. Auth uses `Authorization: Bearer <token>`.
 
-Yes, you can!
+| Area | Routes |
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+|------|--------|
+| Auth | `POST /auth/register`, `POST /auth/login`, `GET/PATCH /auth/me`, `PATCH /auth/me/password` |
+| Products | `GET /products/public` (storefront), CRUD `/products` (admin) |
+| Contacts | CRUD `/contacts` (admin) |
+| Orders | `POST /orders/checkout` (customer), CRUD `/orders` (admin), `GET /orders/mine` |
+| Purchase orders | CRUD `/purchase-orders` (admin; "received" increments stock) |
+| Invoices | `/invoices`, `/invoices/mine` |
+| Bills | CRUD `/bills` (admin) |
+| Payments | CRUD `/payments` (admin) |
+| Payment terms | CRUD `/payment-terms` (admin) |
+| Coupons | `POST /discount-offers/preview` (public), CRUD `/discount-offers` (admin) |
+| Notifications | `/notifications`, `/notifications/unread-count`, `/notifications/read-all` |
+| Settings | `GET/PATCH /settings` (per user) |
+| Dashboard | `/dashboard/stats`, `/dashboard/recent-orders`, `/dashboard/top-products`, `/dashboard/monthly-sales` |
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Tests / smoke checks
+
+```sh
+bash server/scripts/e2e-test.sh       # API smoke test (10 checks)
+bash server/scripts/e2e-checkout.sh   # customer checkout flow
+bash server/scripts/e2e-fullstack.sh  # frontend proxy ↔ API
+```
