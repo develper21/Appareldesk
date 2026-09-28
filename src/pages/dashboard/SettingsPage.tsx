@@ -26,21 +26,51 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
+import { authApi, settingsApi } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { useEffect } from "react";
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { user, refreshUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [profile, setProfile] = useState({ name: "", phone: "" });
+  const [passwords, setPasswords] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+
+  useEffect(() => {
+    if (user) setProfile({ name: user.name, phone: user.phone ?? "" });
+  }, [user]);
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSaving(false);
-    toast({
-      title: "Settings saved",
-      description: "Your settings have been updated successfully.",
-    });
+    try {
+      await authApi.updateMe({ name: profile.name, phone: profile.phone || undefined });
+      await refreshUser();
+      toast({
+        title: "Settings saved",
+        description: "Your settings have been updated successfully.",
+      });
+    } catch (error) {
+      toast({ title: "Save failed", description: getApiErrorMessage(error), variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      toast({ title: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    try {
+      await authApi.changePassword({ currentPassword: passwords.currentPassword, newPassword: passwords.newPassword });
+      setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      toast({ title: "Password updated" });
+    } catch (error) {
+      toast({ title: "Update failed", description: getApiErrorMessage(error), variant: "destructive" });
+    }
   };
 
   return (
@@ -129,23 +159,23 @@ export default function SettingsPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="John" />
+                  <Label htmlFor="firstName">Full Name</Label>
+                  <Input id="firstName" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Doe" />
+                  <Label htmlFor="lastName">Email</Label>
+                  <Input id="lastName" value={user?.email ?? ""} disabled />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                <Label htmlFor="email">Role</Label>
+                <Input id="email" value={user?.role ?? "user"} disabled className="capitalize" />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="tel" defaultValue="+91 98765 43210" />
+                <Input id="phone" type="tel" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
               </div>
               
               <div className="space-y-2">
@@ -316,6 +346,8 @@ export default function SettingsPage() {
                     id="currentPassword"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter current password"
+                    value={passwords.currentPassword}
+                    onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
                   />
                   <Button
                     type="button"
@@ -339,6 +371,8 @@ export default function SettingsPage() {
                   id="newPassword"
                   type="password"
                   placeholder="Enter new password"
+                  value={passwords.newPassword}
+                  onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
                 />
               </div>
               
@@ -348,10 +382,14 @@ export default function SettingsPage() {
                   id="confirmPassword"
                   type="password"
                   placeholder="Confirm new password"
+                  value={passwords.confirmPassword}
+                  onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
                 />
               </div>
               
-              <Button variant="outline">Update Password</Button>
+              <Button variant="outline" onClick={handlePasswordChange} disabled={!passwords.currentPassword || !passwords.newPassword}>
+                Update Password
+              </Button>
             </CardContent>
           </Card>
 
@@ -627,8 +665,8 @@ export default function SettingsPage() {
                       <Database className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium">Supabase</p>
-                      <p className="text-sm text-muted-foreground">Database & Authentication</p>
+                      <p className="font-medium">MongoDB + NestJS API</p>
+                      <p className="text-sm text-muted-foreground">Database &amp; Authentication</p>
                     </div>
                   </div>
                   <Badge className="bg-green-100 text-green-800">Connected</Badge>
