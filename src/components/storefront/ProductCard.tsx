@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
-  id: number;
+  id: string | number;
   name: string;
   category: string;
   price: number;
