@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notificationsApi } from "@/lib/api";
+import type { AppNotification } from "@/lib/api/types";
 import { motion } from "framer-motion";
 import { 
   Bell, 
@@ -18,95 +21,17 @@ import {
   Settings,
   Calendar,
   ArrowUpDown,
-  MoreHorizontal
+  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'order' | 'inventory' | 'payment' | 'customer' | 'system' | 'marketing';
-  priority: 'high' | 'medium' | 'low';
-  timestamp: Date;
-  read: boolean;
-  actionUrl?: string;
-  actionText?: string;
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    title: 'New Order Received',
-    message: 'Order #ORD-2024-001 has been placed by John Doe for ₹2,499',
-    type: 'order',
-    priority: 'high',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    read: false,
-    actionUrl: '/dashboard/sales',
-    actionText: 'View Order'
-  },
-  {
-    id: '2',
-    title: 'Low Stock Alert',
-    message: 'Product "Blue Denim Jeans" is running low on stock (5 units remaining)',
-    type: 'inventory',
-    priority: 'high',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    read: false,
-    actionUrl: '/dashboard/products',
-    actionText: 'Manage Stock'
-  },
-  {
-    id: '3',
-    title: 'Payment Received',
-    message: 'Payment of ₹1,299 received for Order #ORD-2024-002',
-    type: 'payment',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    read: true,
-    actionUrl: '/dashboard/payments',
-    actionText: 'View Payment'
-  },
-  {
-    id: '4',
-    title: 'New Customer Registration',
-    message: 'Sarah Johnson has registered as a new customer',
-    type: 'customer',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-    read: true,
-    actionUrl: '/dashboard/contacts',
-    actionText: 'View Customer'
-  },
-  {
-    id: '5',
-    title: 'System Update',
-    message: 'System maintenance scheduled for tonight at 2:00 AM',
-    type: 'system',
-    priority: 'low',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    read: true
-  },
-  {
-    id: '6',
-    title: 'Marketing Campaign Completed',
-    message: 'Your "Summer Sale" campaign has been completed successfully',
-    type: 'marketing',
-    priority: 'low',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
-    read: true
-  }
-];
+type Notification = AppNotification;
 
 const getNotificationIcon = (type: Notification['type']) => {
   switch (type) {
@@ -156,8 +81,29 @@ const formatTimestamp = (date: Date) => {
 
 export default function NotificationsPage() {
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>(mockNotifications);
+  const queryClient = useQueryClient();
+
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => notificationsApi.list(false),
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: (id: string) => notificationsApi.markRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: () => notificationsApi.markAllRead(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => notificationsApi.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const [filteredNotifications, setFilteredNotifications] = useState<AppNotification[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
@@ -195,9 +141,9 @@ export default function NotificationsPage() {
     // Sort
     filtered = [...filtered].sort((a, b) => {
       if (sortBy === 'newest') {
-        return b.timestamp.getTime() - a.timestamp.getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else if (sortBy === 'oldest') {
-        return a.timestamp.getTime() - b.timestamp.getTime();
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else if (sortBy === 'priority') {
         const priorityOrder = { high: 0, medium: 1, low: 2 };
         return priorityOrder[a.priority] - priorityOrder[b.priority];
@@ -208,20 +154,12 @@ export default function NotificationsPage() {
     setFilteredNotifications(filtered);
   }, [notifications, searchTerm, selectedType, selectedPriority, selectedStatus, sortBy]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
+  const markAsRead = (id: string) => markReadMutation.mutate(id);
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
+    markAllReadMutation.mutate();
     toast({
       title: "All notifications marked as read",
       description: "You have successfully marked all notifications as read.",
@@ -229,7 +167,7 @@ export default function NotificationsPage() {
   };
 
   const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    deleteMutation.mutate(id);
     toast({
       title: "Notification deleted",
       description: "The notification has been removed.",
@@ -237,7 +175,7 @@ export default function NotificationsPage() {
   };
 
   const clearAllNotifications = () => {
-    setNotifications([]);
+    notifications.filter((n) => !n.read).forEach((n) => deleteMutation.mutate(n._id));
     toast({
       title: "All notifications cleared",
       description: "All notifications have been removed.",
@@ -324,7 +262,7 @@ export default function NotificationsPage() {
                 <p className="text-2xl font-bold">
                   {notifications.filter(n => {
                     const today = new Date();
-                    return n.timestamp.toDateString() === today.toDateString();
+                    return new Date(n.createdAt).toDateString() === today.toDateString();
                   }).length}
                 </p>
               </div>
@@ -429,14 +367,14 @@ export default function NotificationsPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredNotifications.map((notification) => {
+              {filteredNotifications.map((notification: Notification) => {
                 const Icon = getNotificationIcon(notification.type);
                 const iconColor = getNotificationColor(notification.type);
                 const priorityColor = getPriorityColor(notification.priority);
                 
                 return (
                   <motion.div
-                    key={notification.id}
+                    key={notification._id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={`p-4 rounded-lg border transition-all hover:shadow-md ${
@@ -468,7 +406,7 @@ export default function NotificationsPage() {
                             <div className="flex items-center gap-4">
                               <span className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                {formatTimestamp(notification.timestamp)}
+                                {formatTimestamp(new Date(notification.createdAt))}
                               </span>
                               {notification.actionText && (
                                 <Button 
@@ -494,7 +432,7 @@ export default function NotificationsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => markAsRead(notification.id)}
+                                onClick={() => markAsRead(notification._id)}
                                 className="h-8 w-8 p-0"
                               >
                                 <Check className="w-4 h-4" />
@@ -508,13 +446,13 @@ export default function NotificationsPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 {!notification.read && (
-                                  <DropdownMenuItem onClick={() => markAsRead(notification.id)}>
+                                  <DropdownMenuItem onClick={() => markAsRead(notification._id)}>
                                     <Check className="w-4 h-4 mr-2" />
                                     Mark as read
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem 
-                                  onClick={() => deleteNotification(notification.id)}
+                                <DropdownMenuItem
+                                  onClick={() => deleteNotification(notification._id)}
                                   className="text-red-600"
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
