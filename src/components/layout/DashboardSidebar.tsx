@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -16,7 +16,7 @@ import {
   Wallet,
   CreditCard,
   Store,
-  Menu,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,8 @@ import { Button } from "@/components/ui/button";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Package, label: "Products", path: "/dashboard/products" },
-  { icon: Users, label: "Contacts", path: "/dashboard/contacts" },
   { icon: ShoppingCart, label: "Sale Orders", path: "/dashboard/sales" },
+  { icon: Users, label: "Contacts", path: "/dashboard/contacts" },
   { icon: FileText, label: "Purchase Orders", path: "/dashboard/purchases" },
   { icon: Receipt, label: "Customer Invoices", path: "/dashboard/invoices" },
   { icon: Wallet, label: "Vendor Bills", path: "/dashboard/bills" },
@@ -54,18 +54,21 @@ export function DashboardSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2.5"
             >
-              <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
-                <Store className="w-5 h-5 text-primary-foreground" />
+              <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center shadow-glow">
+                <Store className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-lg text-foreground">ApparelDesk</span>
+              <div className="flex flex-col">
+                <span className="font-bold text-base text-foreground leading-tight">ApparelDesk</span>
+                <span className="text-[10px] text-primary font-semibold tracking-wider">ADMIN PORTAL</span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
         {collapsed && (
           <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center mx-auto">
-            <Store className="w-5 h-5 text-primary-foreground" />
+            <Store className="w-4 h-4 text-primary-foreground" />
           </div>
         )}
       </div>
@@ -82,7 +85,7 @@ export function DashboardSidebar() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
                     isActive
-                      ? "bg-primary/10 text-primary"
+                      ? "bg-primary/10 text-primary font-semibold"
                       : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
@@ -99,7 +102,7 @@ export function DashboardSidebar() {
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: "auto" }}
                         exit={{ opacity: 0, width: 0 }}
-                        className="text-sm font-medium whitespace-nowrap overflow-hidden"
+                        className="text-sm whitespace-nowrap overflow-hidden"
                       >
                         {item.label}
                       </motion.span>
@@ -112,19 +115,31 @@ export function DashboardSidebar() {
         </ul>
       </nav>
 
-      {/* Collapse Toggle */}
-      <div className="p-4 border-t border-sidebar-border">
+      {/* Storefront Jump Link & Collapse Toggle */}
+      <div className="p-3 border-t border-sidebar-border space-y-2">
+        <Link
+          to="/"
+          className={cn(
+            "flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors",
+            collapsed && "justify-center px-0"
+          )}
+          title="Visit Customer Storefront"
+        >
+          <Store className="w-4 h-4 shrink-0" />
+          {!collapsed && (
+            <span className="flex-1 truncate flex items-center justify-between">
+              Storefront <ExternalLink className="w-3 h-3" />
+            </span>
+          )}
+        </Link>
+
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center"
+          className="w-full flex items-center justify-center h-8"
         >
-          {collapsed ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <ChevronLeft className="w-5 h-5" />
-          )}
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
       </div>
     </motion.aside>
