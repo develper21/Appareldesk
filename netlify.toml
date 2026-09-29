@@ -13,6 +13,11 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  # VITE_* vars are PUBLIC by design (they ship inside the JS bundle).
+  # Netlify's secrets scanner sees their values (e.g. "15000", URLs) in
+  # repo files / built output and false-positives. Explicitly omit the
+  # public frontend keys from scanning — real secrets never live here.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_API_URL,VITE_API_TIMEOUT,VITE_API_PROXY_TARGET"
 
 # SPA fallback: every unknown route serves index.html (React Router)
 [[redirects]]
