@@ -467,6 +467,8 @@ The repo ships ready-made deployment configs: [`render.yaml`](render.yaml) (Rend
    - `JWT_SECRET` — auto-generated if you leave it, or paste your own.
    - `CORS_ORIGINS` — after step 5 below, set it to your Netlify URL (e.g. `https://appareldesk.netlify.app`).
    - `ADMIN_PASSWORD` — a strong production admin password.
+
+   > Note: build tools (`@nestjs/cli`, `typescript`, `ts-node`) are intentionally regular `dependencies` so the production build works even though Render sets `NODE_ENV=production`. `render.yaml` also passes `npm ci --include=dev` for safety.
 4. Deploy. Render runs `npm ci && npm run build` in `server/` and starts `node dist/main.js`; the health check lives at `/api/health`.
 5. Seed the production database once from your machine: `cd server && npm run seed:prod` (with `server/.env.production` pointing at Atlas) — or run the same command in the Render shell.
 
@@ -509,6 +511,8 @@ All real-value env files are gitignored; only `.env.example` templates are track
 | Mongoose cast errors on optional fields | Nullable `@Prop()` fields need explicit types (`@Prop({ type: String })` etc.) — keep this pattern for new schema fields. |
 | Frontend shows network errors | Check the API is on :3001; in dev leave `VITE_API_URL` empty to use the Vite proxy, or set it to `http://localhost:3001/api`. |
 | Vite starts on a different port or 8080 is taken | Something else (e.g. Jenkins) owns :8080 — run `npm run dev -- --port 8090 --strictPort`. |
+| **Render build fails: `sh: nest: not found`** | `NODE_ENV=production` makes `npm ci` skip devDependencies, and `@nestjs/cli` was one. It (plus `typescript`, `ts-node`) now lives in `dependencies`, and `render.yaml` uses `npm ci --include=dev` — keep both. |
+| **Netlify build fails: secrets scanning found `VITE_API_TIMEOUT`** | False positive — the scanner matches the public value ("15000") inside repo files. `netlify.toml` sets `SECRETS_SCAN_OMIT_KEYS` for the public `VITE_*` keys. If you add new public `VITE_` vars, add them there too (or set `SECRETS_SCAN_OMIT_PATHS`). |
 | 401 on every request after login | Token lives in `localStorage` under `appareldesk_access_token`; if the API restarted with a different `JWT_SECRET`, sign in again. |
 | Wishlist shows stale data after sign-in/out | The provider adopts the server list when a token exists and restores the guest list otherwise; refresh the page to force re-sync. |
 
