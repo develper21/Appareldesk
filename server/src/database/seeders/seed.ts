@@ -1,12 +1,23 @@
 /**
  * Seed script — creates demo data for the ApparelDesk API.
- * Run with: npm run seed (from the server/ directory)
+ * Run with: npm run seed      (uses .env.local / dev values)
+ *        or npm run seed:prod (NODE_ENV=production -> .env.production)
  */
 import 'reflect-metadata';
 import mongoose from 'mongoose';
 import * as bcrypt from 'bcryptjs';
+import { config } from 'dotenv';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/appareldesk';
+// Load env the same way the API does: .env.local (dev) or .env.production (NODE_ENV=production)
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.local';
+config({ path: envFile });
+config({ path: '.env' }); // optional override, may not exist
+
+let MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/appareldesk';
+// Atlas URIs often arrive without a database name (trailing '/') — default to 'appareldesk'
+if (/^mongodb(\+srv)?:\/\/[^/]+\/?$/.test(MONGODB_URI)) {
+  MONGODB_URI = MONGODB_URI.replace(/\/?$/, '/appareldesk');
+}
 
 const productSeeds = [
   { name: 'Premium Cotton Shirt', sku: 'PCS-001', category: 'Men', productType: 'readymade', price: 1299, costPrice: 700, stockQuantity: 145, description: 'Breathable premium cotton formal shirt' },
@@ -26,7 +37,7 @@ const productSeeds = [
 async function main() {
   console.log('Connecting to MongoDB...');
   await mongoose.connect(MONGODB_URI);
-  console.log('Connected:', MONGODB_URI);
+  console.log('Connected:', MONGODB_URI.replace(/\/\/([^:]+):[^@]+@/, '//$1:****@'));
 
   const db = mongoose.connection.db!;
   const now = new Date();
@@ -63,6 +74,7 @@ async function main() {
   const existingCustomer = await usersCol.findOne({ email: customerEmail });
   if (existingCustomer) {
     customerId = existingCustomer._id as mongoose.Types.ObjectId;
+    console.log('Customer already exists:', customerEmail);
   } else {
     const hashed = await bcrypt.hash('customer123', 10);
     const res = await usersCol.insertOne({
@@ -106,7 +118,7 @@ async function main() {
   ]);
   const contactIds = Object.values(insertedContacts.insertedIds) as mongoose.Types.ObjectId[];
   const vendor1 = contactIds[0];
-  const cust1 = contactIds[2];
+  void adminId;
 
   // ----- Payment Terms -----
   const termsCol = db.collection('payment_terms');
@@ -126,32 +138,71 @@ async function main() {
     { code: 'FIRST20', discountType: 'percent', discountValue: 20, description: '20% off for first order', minOrderAmount: 999, isActive: true, usedCount: 0, createdAt: now, updatedAt: now },
     { code: 'SAVE10', discountType: 'percent', discountValue: 10, description: 'Flat 10% off on all orders', minOrderAmount: 0, isActive: true, usedCount: 0, createdAt: now, updatedAt: now },
     { code: 'FLAT500', discountType: 'fixed', discountValue: 500, description: '₹500 off above ₹4,999', minOrderAmount: 4999, isActive: true, usedCount: 0, createdAt: now, updatedAt: now },
+    { code: 'APPAREL20', discountType: 'percent', discountValue: 20, description: 'Mega Season Sale — 20% off sitewide', minOrderAmount: 0, isActive: true, usedCount: 0, createdAt: now, updatedAt: now },
+    { code: 'WELCOME10', discountType: 'percent', discountValue: 10, description: 'Welcome gift — 10% off your order', minOrderAmount: 0, isActive: true, usedCount: 0, createdAt: now, updatedAt: now },
+    { code: 'SAVE500', discountType: 'fixed', discountValue: 500, description: 'Flat ₹500 off on your order', minOrderAmount: 0, isActive: true, usedCount: 0, createdAt: now, updatedAt: now },
   ]);
   console.log('Inserted discount offers');
 
-  // ----- Sample Order -----
+  // ----- Sample Orders (customer storefront history) -----
   const ordersCol = db.collection('orders');
   await ordersCol.deleteMany({});
   const shirt = productSeeds[0];
   const jeans = productSeeds[1];
+  const kurta = productSeeds[2];
   const orderItems = [
     { productId: productIds[0], quantity: 2, unitPrice: shirt.price, totalPrice: shirt.price * 2 },
     { productId: productIds[1], quantity: 1, unitPrice: jeans.price, totalPrice: jeans.price },
   ];
   const subtotal = orderItems.reduce((s, i) => s + i.totalPrice, 0);
-  await ordersCol.insertOne({
-    orderNumber: 'ORD-2026-00001',
-    userId: customerId,
-    items: orderItems,
-    subtotal,
-    taxAmount: 0,
-    discountAmount: 0,
-    totalAmount: subtotal,
-    status: 'confirmed',
-    createdAt: now,
-    updatedAt: now,
-  } as any);
-  console.log('Inserted 1 sample order');
+  const orderItems2 = [
+    { productId: productIds[2], quantity: 1, unitPrice: kurta.price, totalPrice: kurta.price },
+  ];
+  await ordersCol.insertMany([
+    {
+      orderNumber: 'ORD-2026-00001',
+      userId: customerId,
+      items: orderItems,
+      subtotal,
+      taxAmount: 0,
+      discountAmount: 0,
+      totalAmount: subtotal,
+      status: 'shipped',
+      shippingAddress: {
+        fullName: 'Rahul Sharma',
+        phone: '+91 90000 00001',
+        line1: '42 Park View Avenue',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        pincode: '400001',
+        paymentMethod: 'upi',
+      },
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      orderNumber: 'ORD-2026-00002',
+      userId: customerId,
+      items: orderItems2,
+      subtotal: kurta.price,
+      taxAmount: 0,
+      discountAmount: 0,
+      totalAmount: kurta.price,
+      status: 'delivered',
+      shippingAddress: {
+        fullName: 'Rahul Sharma',
+        phone: '+91 90000 00001',
+        line1: '42 Park View Avenue',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        pincode: '400001',
+        paymentMethod: 'cod',
+      },
+      createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+    },
+  ] as any[]);
+  console.log('Inserted 2 sample customer orders');
 
   // ----- Sample Purchase Order -----
   const poCol = db.collection('purchase_orders');
@@ -183,9 +234,6 @@ async function main() {
     updatedAt: now,
   } as any);
   console.log('Inserted welcome notification');
-
-  void adminId;
-  void cust1;
 
   await mongoose.disconnect();
   console.log('✅ Seed complete');
