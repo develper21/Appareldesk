@@ -14,7 +14,9 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    buildCommand: npm ci && npm run build
+    # --include=dev is REQUIRED: @nestjs/cli is needed for `npm run build`,
+    # and NODE_ENV=production would otherwise skip devDependencies entirely.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: node dist/main.js
     healthCheckPath: /api/health
     envVars:
