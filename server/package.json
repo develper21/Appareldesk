@@ -10,7 +10,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\"",
-    "seed": "ts-node -r tsconfig-paths/register src/database/seeders/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/database/seeders/seed.ts",
+    "seed:prod": "NODE_ENV=production ts-node -r tsconfig-paths/register src/database/seeders/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
@@ -24,6 +25,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.4",
     "helmet": "^8.0.0",
     "mongoose": "^8.9.5",
     "reflect-metadata": "^0.2.2",
