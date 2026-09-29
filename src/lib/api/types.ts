@@ -82,7 +82,7 @@ export interface Order {
   totalAmount: number;
   status: OrderStatus;
   couponCode: string | null;
-  shippingAddress: Record<string, any> | null;
+  shippingAddress: Record<string, unknown> | null;
   createdAt: string;
 }
 
@@ -205,15 +205,17 @@ export interface CouponPreview {
 }
 
 /** Helper to normalize an id from either a populated object or a raw string */
-export function refId(ref: any): string {
+export function refId(ref: unknown): string {
   if (!ref) return "";
   if (typeof ref === "string") return ref;
-  return ref._id ?? ref.id ?? "";
+  const r = ref as { _id?: string; id?: string };
+  return r._id ?? r.id ?? "";
 }
 
 /** Helper to get a name from a populated ref or fallback */
-export function refName(ref: any): string {
+export function refName(ref: unknown): string {
   if (!ref) return "—";
   if (typeof ref === "string") return ref;
-  return ref.name ?? "—";
+  const r = ref as { name?: string };
+  return r.name ?? "—";
 }
