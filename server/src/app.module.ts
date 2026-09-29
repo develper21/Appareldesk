@@ -15,20 +15,38 @@ import { BillsModule } from './modules/bills/bills.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PaymentTermsModule } from './modules/payment-terms/payment-terms.module';
 import { DiscountOffersModule } from './modules/discount-offers/discount-offers.module';
+import { WishlistsModule } from './modules/wishlists/wishlists.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { JwtGlobalModule } from './common/jwt-global.module';
 import { HealthController } from './health.controller';
 
+/**
+ * Which env file the API loads (first match wins):
+ *   production build/runtime  ->  .env.production, then .env, then .env.local
+ *   development               ->  .env.local, then .env
+ * Real values live in .env.local (dev) / .env.production (prod); .env.example stays a reference.
+ */
+const envFilePath =
+  process.env.NODE_ENV === 'production'
+    ? ['.env.production', '.env', '.env.local']
+    : ['.env.local', '.env'];
+
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('MONGODB_URI', 'mongodb://localhost:27017/appareldesk'),
-      }),
+      useFactory: (config: ConfigService) => {
+        let uri = config.get<string>('MONGODB_URI', 'mongodb://localhost:27017/appareldesk');
+        // Atlas URIs may arrive without a database name (trailing '/') —
+        // Mongoose would then silently use the "test" database. Default to "appareldesk".
+        if (/^mongodb(\+srv)?:\/\/[^/]+\/?$/.test(uri)) {
+          uri = uri.replace(/\/?$/, '/appareldesk');
+        }
+        return { uri };
+      },
     }),
     ThrottlerModule.forRoot([
       { ttl: 60000, limit: 300 }, // 300 requests per minute per IP
@@ -45,6 +63,7 @@ import { HealthController } from './health.controller';
     PaymentsModule,
     PaymentTermsModule,
     DiscountOffersModule,
+    WishlistsModule,
     NotificationsModule,
     SettingsModule,
     DashboardModule,
