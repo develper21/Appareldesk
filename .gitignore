@@ -21,6 +21,9 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
-
+*.sw?# Environment files with REAL values (keep .env.example as the only tracked template)
 .env
+.env.*
+!.env.example
+.local
+.env.productino
