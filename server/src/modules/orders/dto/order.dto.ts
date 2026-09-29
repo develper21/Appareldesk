@@ -17,6 +17,11 @@ export class ShippingAddressDto {
   @IsOptional() @IsString() @MaxLength(64) city?: string;
   @IsOptional() @IsString() @MaxLength(64) state?: string;
   @IsOptional() @IsString() @MaxLength(12) pincode?: string;
+
+  /** Payment method chosen at checkout (upi | card | cod | netbanking) */
+  @IsOptional()
+  @IsIn(['upi', 'card', 'cod', 'netbanking'])
+  paymentMethod?: 'upi' | 'card' | 'cod' | 'netbanking';
 }
 
 export class CreateOrderDto {
