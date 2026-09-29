@@ -1,0 +1,36 @@
+# ==============================================
+# Netlify deployment for the ApparelDesk frontend
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+#
+# The SPA calls the Render API directly via VITE_API_URL
+# (set it in Netlify -> Site settings -> Environment variables,
+# or in .env.production for the build).
+# ==============================================
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback: every unknown route serves index.html (React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ---------- Security headers ----------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Long-cache immutable build assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
