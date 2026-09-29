@@ -159,6 +159,22 @@ export const discountsApi = {
   remove: (id: string) => api.delete(`/discount-offers/${id}`),
 };
 
+// ---------- Wishlist ----------
+export const wishlistApi = {
+  /** Full wishlist for the signed-in user (populated Product[]) */
+  list: () => api.get<Product[]>("/wishlist").then((r) => r.data),
+  /** Add a product (idempotent) */
+  add: (data: { productId: string; productName?: string; priceAtAdd?: number }) =>
+    api.post("/wishlist", data).then((r) => r.data),
+  /** Heart toggle — returns { wishlisted: boolean } */
+  toggle: (productId: string) =>
+    api.post<{ wishlisted: boolean }>("/wishlist/toggle", { productId }).then((r) => r.data),
+  /** Remove one product */
+  remove: (productId: string) => api.delete(`/wishlist/${productId}`).then((r) => r.data),
+  /** Empty the wishlist */
+  clear: () => api.delete("/wishlist").then((r) => r.data),
+};
+
 // ---------- Notifications ----------
 export const notificationsApi = {
   list: (unreadOnly = false) =>
@@ -173,7 +189,7 @@ export const notificationsApi = {
 // ---------- Settings ----------
 export const settingsApi = {
   get: () => api.get("/settings").then((r) => r.data),
-  update: (data: Record<string, any>) => api.patch("/settings", data).then((r) => r.data),
+  update: (data: Record<string, unknown>) => api.patch("/settings", data).then((r) => r.data),
 };
 
 // ---------- Dashboard ----------
