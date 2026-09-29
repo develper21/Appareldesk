@@ -14,9 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { notificationsApi } from "@/lib/api";
 
-interface DashboardHeaderProps {}
-
-export function DashboardHeader({}: DashboardHeaderProps) {
+export function DashboardHeader() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
