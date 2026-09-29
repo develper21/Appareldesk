@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
+import { CartProvider } from "@/lib/cart";
+import { WishlistProvider } from "@/lib/wishlist";
 
 // Storefront
 import { StorefrontLayout } from "@/components/storefront/StorefrontLayout";
@@ -11,6 +13,7 @@ import HomePage from "@/pages/storefront/HomePage";
 import ShopPage from "@/pages/storefront/ShopPage";
 import CartPage from "@/pages/storefront/CartPage";
 import MyOrdersPage from "@/pages/storefront/MyOrdersPage";
+import ProductDetailPage from "@/pages/storefront/ProductDetailPage";
 
 // Auth
 import LoginPage from "@/pages/auth/LoginPage";
@@ -34,49 +37,61 @@ import NotificationsPage from "@/pages/dashboard/NotificationsPage";
 
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 30000,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Storefront Routes */}
-            <Route element={<StorefrontLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/my-orders" element={<MyOrdersPage />} />
-            </Route>
+      <CartProvider>
+        <WishlistProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner richColors position="top-right" />
+            <BrowserRouter>
+              <Routes>
+                {/* Storefront Routes */}
+                <Route element={<StorefrontLayout />}>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/shop" element={<ShopPage />} />
+                  <Route path="/product/:id" element={<ProductDetailPage />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/my-orders" element={<MyOrdersPage />} />
+                </Route>
 
-            {/* Auth Routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+                {/* Auth Routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-            {/* Dashboard Routes */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardHome />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="contacts" element={<ContactsPage />} />
-              <Route path="sales" element={<SalesOrdersPage />} />
-              <Route path="purchases" element={<PurchaseOrdersPage />} />
-              <Route path="invoices" element={<CustomerInvoicesPage />} />
-              <Route path="bills" element={<VendorBillsPage />} />
-              <Route path="payments" element={<PaymentsPage />} />
-              <Route path="payment-terms" element={<PaymentTermsPage />} />
-              <Route path="discounts" element={<DiscountOffersPage />} />
-              <Route path="reports" element={<ReportsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-            </Route>
+                {/* Dashboard Routes */}
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="products" element={<ProductsPage />} />
+                  <Route path="contacts" element={<ContactsPage />} />
+                  <Route path="sales" element={<SalesOrdersPage />} />
+                  <Route path="purchases" element={<PurchaseOrdersPage />} />
+                  <Route path="invoices" element={<CustomerInvoicesPage />} />
+                  <Route path="bills" element={<VendorBillsPage />} />
+                  <Route path="payments" element={<PaymentsPage />} />
+                  <Route path="payment-terms" element={<PaymentTermsPage />} />
+                  <Route path="discounts" element={<DiscountOffersPage />} />
+                  <Route path="reports" element={<ReportsPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="notifications" element={<NotificationsPage />} />
+                </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </WishlistProvider>
+      </CartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
