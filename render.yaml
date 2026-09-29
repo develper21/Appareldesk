@@ -1,0 +1,40 @@
+# ==============================================
+# Render.com deployment for the ApparelDesk API
+# https://render.com/docs/blueprint-spec
+#
+# Deploy: push this repo to GitHub -> Render Dashboard ->
+# New -> Blueprint -> select the repo -> Apply.
+# Fill in the sync=false secrets when prompted
+# (MONGODB_URI, JWT_SECRET, ADMIN_PASSWORD).
+# ==============================================
+
+services:
+  - type: web
+    name: appareldesk-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/main.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      # Render injects PORT automatically — main.ts already reads it.
+      - key: MONGODB_URI
+        sync: false          # paste your Atlas URI (must include /appareldesk db name)
+      - key: JWT_SECRET
+        generateValue: true  # or set your own strong secret
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: API_PREFIX
+        value: api
+      # After your Netlify site exists, replace with its real URL:
+      - key: CORS_ORIGINS
+        sync: false          # e.g. https://appareldesk.netlify.app
+      - key: ADMIN_EMAIL
+        value: admin@appareldesk.com
+      - key: ADMIN_PASSWORD
+        sync: false          # choose a strong production admin password
