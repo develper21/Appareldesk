@@ -1,0 +1,3104 @@
+{
+  "info": {
+    "_postman_id": "b7e9c1a2-3f4d-4e5f-8a9b-0c1d2e3f4a5b",
+    "name": "ApparelDesk API",
+    "description": "# ApparelDesk API — Postman Collection\n\nFashion retail management platform (storefront + admin) ka complete API suite.\n\n## Quick Start (recommended order)\n\n| Step | Request | Kya hota hai |\n| ---- | ------- | ------------ |\n| 1 | Health ▸ Health Check | API up hai confirm karein |\n| 2 | Auth ▸ Login (Admin) | `{{adminToken}}` auto-save |\n| 3 | Auth ▸ Login (Customer) | `{{token}}` auto-save |\n| 4 | Products ▸ Public List | `{{lastProductId}}` auto-save |\n| 5 | Contacts ▸ List Vendors | `{{lastVendorId}}` auto-save |\n| 6 | Orders ▸ Checkout | `{{lastOrderId}}` auto-save |\n\n## Demo Accounts\n\n- **Admin:** admin@appareldesk.com / admin123\n- **Customer:** customer@appareldesk.com / customer123\n\n## Seeded Coupons\n\nFIRST20, SAVE10, FLAT500, APPAREL20, WELCOME10, SAVE500\n\n## Auth\n\nBearer JWT — collection-level auth `{{token}}` (customer) use karta hai; admin requests pe request-level override `{{adminToken}}` hai. Public requests pe `noauth` set hai.\n\n## Base URL\n\n- Local: `http://localhost:3001/api`\n- Production: `https://appareldesk-api.onrender.com/api` (`baseUrl` variable badal dein)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporterId": "appareldesk"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log(pm.info.requestName + ' -> ' + pm.request.url.toString());"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastProductId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastVendorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastOrderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastPoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastInvoiceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastBillId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastPaymentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastTermId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastDiscountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lastNotificationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": {
+        "content": "Server health check — sabse pehle yahi run karein to confirm API is up.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": {
+              "content": "Public. Returns `{ status: \"ok\", timestamp }` — no auth needed.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": {
+        "content": "Authentication & profile. **Admin Login** sets `{{adminToken}}`, **Customer Login** sets `{{token}}` automatically via test scripts.\n\nDemo: admin@appareldesk.com / admin123 • customer@appareldesk.com / customer123",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"phone\": \"9876543210\",\n  \"password\": \"test123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": {
+              "content": "Public. New customers always register with role `user`.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Login (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@appareldesk.com\",\n  \"password\": \"customer123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": {
+              "content": "Public. Test script saves JWT into collection variable `{{token}}`.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login successful', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "  pm.collectionVariables.set('token', res.accessToken);",
+                  "  console.log('Token saved into {{' + varName + '}} - authenticated requests are ready to run');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@appareldesk.com\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": {
+              "content": "Public. Test script saves admin JWT into `{{adminToken}}` — zaroori for admin folders.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login successful', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "  pm.collectionVariables.set('adminToken', res.accessToken);",
+                  "  console.log('Token saved into {{' + varName + '}} - authenticated requests are ready to run');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user (uses `{{token}}`).",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rahul Sharma\",\n  \"phone\": \"9876500000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": {
+              "content": "Any authenticated user. All fields optional.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"customer123\",\n  \"newPassword\": \"customer123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": {
+              "content": "Any authenticated user. Example keeps the same password so demo creds keep working.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "description": {
+        "content": "Storefront + admin product APIs. **Public List** pehle chalane se `{{lastProductId}}` auto-set ho jaata hai (wishlist/checkout bodies use it).",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Public List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/public",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "public"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Name/description search, e.g. kurta"
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "e.g. readymade"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "",
+                  "description": "e.g. 500"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "",
+                  "description": "e.g. 5000"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "12"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": {
+              "content": "Public. Published products only. Test script saves first `_id` into `{{lastProductId}}`.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastProductId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastProductId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Product By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                ":id"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": {
+              "content": "Public. Replace `:id` (ya path variable) with a product Mongo `_id`.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin List (incl. unpublished)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastProductId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastProductId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cotton Printed Kurta\",\n  \"sku\": \"AD-KURTA-001\",\n  \"description\": \"Hand block printed pure cotton kurta with side pockets.\",\n  \"category\": \"readymade\",\n  \"productType\": \"readymade\",\n  \"price\": 1299,\n  \"costPrice\": 780,\n  \"stockQuantity\": 40,\n  \"unit\": \"pcs\",\n  \"imageUrl\": \"https://example.com/images/kurta-001.jpg\",\n  \"isPublished\": true,\n  \"tags\": [\n    \"cotton\",\n    \"kurta\",\n    \"festive\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `productType` = `readymade` | `fabric`.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 1499,\n  \"stockQuantity\": 25,\n  \"isPublished\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. Kabhi bhi `id` ko PATCH body me mat bhejein (400 error aayega).",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                ":id"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "description": {
+        "content": "Admin-only customers & vendors (vendors = PO/bill ke liye). **List Vendors** run karne se `{{lastVendorId}}` set hota hai.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List Contacts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ],
+              "query": [
+                {
+                  "key": "contactType",
+                  "value": "",
+                  "description": "customer | vendor"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "List Vendors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ],
+              "query": [
+                {
+                  "key": "contactType",
+                  "value": "vendor"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin**. Saves first vendor `_id` into `{{lastVendorId}}` for Purchase Orders / Bills.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastVendorId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastVendorId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Contact By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contacts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts",
+                ":id"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Create Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sharma Fabrics\",\n  \"contactType\": \"vendor\",\n  \"company\": \"Sharma Textiles Pvt Ltd\",\n  \"email\": \"vendor@sharmafabrics.in\",\n  \"phone\": \"9825012345\",\n  \"address\": \"Plot 21, Textile Market\",\n  \"city\": \"Surat\",\n  \"state\": \"Gujarat\",\n  \"pincode\": \"395002\",\n  \"gstNumber\": \"24ABCDE1234F1Z5\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `contactType` = `customer` | `vendor`.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contacts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9825099999\",\n  \"city\": \"Ahmedabad\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Delete Contact",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contacts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts",
+                ":id"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wishlist",
+      "description": {
+        "content": "Signed-in customer ka wishlist (JWT `{{token}}`). Pehle **Products ▸ Public List** run karein so `{{lastProductId}}` bhar jaaye.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Get My Wishlist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user. Populated Product[] return hota hai.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Add To Wishlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{lastProductId}}\",\n  \"productName\": \"Cotton Printed Kurta\",\n  \"priceAtAdd\": 1299\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": {
+              "content": "Any authenticated user. Idempotent upsert — same product dobara bhejne par duplicate nahi banta.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Toggle Wishlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist/toggle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist",
+                "toggle"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{lastProductId}}\",\n  \"productName\": \"Cotton Printed Kurta\",\n  \"priceAtAdd\": 1299\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": {
+              "content": "Any authenticated user. Heart button behaviour — add hatao ya lagao, new state (boolean) return hota hai.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Remove From Wishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist/:productId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist",
+                ":productId"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user. Single product remove (returns updated list).",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Clear Wishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user. Poora wishlist khaali.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "description": {
+        "content": "Checkout + order management. **Checkout** run karne se `{{lastOrderId}}` set hota hai (Get/Update/Delete use karte hain).\n\nOrder status enum: `draft | confirmed | processing | shipped | delivered | cancelled`",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "checkout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{lastProductId}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"couponCode\": \"FIRST20\",\n  \"shippingAddress\": {\n    \"fullName\": \"Rahul Sharma\",\n    \"phone\": \"9876543210\",\n    \"line1\": \"12, MG Road\",\n    \"city\": \"Surat\",\n    \"state\": \"Gujarat\",\n    \"pincode\": \"395003\",\n    \"paymentMethod\": \"upi\"\n  },\n  \"notes\": \"Deliver after 6 PM\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": {
+              "content": "Any authenticated user (`{{token}}`). Coupons: FIRST20, SAVE10, FLAT500, APPAREL20, WELCOME10, SAVE500. `paymentMethod` = `upi | card | cod | netbanking`.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Order created', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const res = pm.response.json();",
+                  "const id = res._id || (res.order && res.order._id);",
+                  "if (id) pm.collectionVariables.set('lastOrderId', id);",
+                  "console.log('lastOrderId = ' + id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/mine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "mine"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                }
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user — customer ka apna order history.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Get Order By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{lastOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{lastOrderId}}"
+              ]
+            },
+            "description": {
+              "content": "Owner ya admin. `{{lastOrderId}}` Checkout se aata hai.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: All Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastOrderId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastOrderId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: Create Order For Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"PASTE_CUSTOMER_USER_ID\",\n  \"items\": [\n    {\n      \"productId\": \"{{lastProductId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"shippingAddress\": {\n    \"fullName\": \"Rahul Sharma\",\n    \"phone\": \"9876543210\",\n    \"line1\": \"12, MG Road\",\n    \"city\": \"Surat\",\n    \"state\": \"Gujarat\",\n    \"pincode\": \"395003\",\n    \"paymentMethod\": \"cod\"\n  },\n  \"taxAmount\": 0,\n  \"notes\": \"Phone order — walked-in customer call\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `customerId` = user Mongo `_id` (Users collection).",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Update Order Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{lastOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{lastOrderId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\",\n  \"notes\": \"Dispatched via BlueDart, AWB 7745123390\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. Status enum: draft/confirmed/processing/shipped/delivered/cancelled.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Delete Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{lastOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{lastOrderId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Purchase Orders",
+      "description": {
+        "content": "Admin-only vendor purchase orders. **List** run karne se `{{lastPoId}}` set hota hai. Vendor chahiye? Pehle Contacts ▸ List Vendors.\n\nStatus enum: `draft | confirmed | received | cancelled`",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List Purchase Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchase-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchase-orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastPoId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastPoId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Purchase Order By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchase-orders/{{lastPoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchase-orders",
+                "{{lastPoId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. Vendor details populated milte hain.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Create Purchase Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/purchase-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchase-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"{{lastVendorId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{lastProductId}}\",\n      \"quantity\": 50,\n      \"unitPrice\": 640\n    }\n  ],\n  \"taxAmount\": 180,\n  \"notes\": \"Monthly fabric restock\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `vendorId` = vendor contact `_id`.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update Purchase Order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/purchase-orders/{{lastPoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchase-orders",
+                "{{lastPoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\",\n  \"notes\": \"Vendor confirmed delivery in 5 days\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Delete Purchase Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchase-orders/{{lastPoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchase-orders",
+                "{{lastPoId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "description": {
+        "content": "Customer apne invoices dekh sakta hai (`/invoices/mine`); baaki sab admin-only.\n\nStatus enum: `draft | sent | paid | overdue | cancelled`",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "My Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invoices/mine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invoices",
+                "mine"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user (`{{token}}`).",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: All Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invoices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastInvoiceId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastInvoiceId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: Create Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/invoices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invoices"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{lastOrderId}}\",\n  \"customerId\": \"PASTE_CUSTOMER_USER_ID\",\n  \"subtotal\": 2499,\n  \"taxAmount\": 150,\n  \"discountAmount\": 500,\n  \"notes\": \"Invoice for online order\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `orderId` optional — order se link ho jaata hai.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Get Invoice By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invoices/{{lastInvoiceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invoices",
+                "{{lastInvoiceId}}"
+              ]
+            },
+            "description": {
+              "content": "Owner ya admin.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Update Invoice Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/invoices/{{lastInvoiceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invoices",
+                "{{lastInvoiceId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"paid\",\n  \"notes\": \"Paid via UPI, ref 40239xxxxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Delete Invoice",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invoices/{{lastInvoiceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invoices",
+                "{{lastInvoiceId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bills",
+      "description": {
+        "content": "Admin-only vendor bills.\n\nStatus enum: `draft | received | paid | overdue | cancelled`",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List Bills",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastBillId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastBillId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Bill By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{lastBillId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{lastBillId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Create Bill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"{{lastVendorId}}\",\n  \"purchaseOrderId\": \"{{lastPoId}}\",\n  \"subtotal\": 32000,\n  \"taxAmount\": 1920,\n  \"dueDate\": \"2026-11-15\",\n  \"notes\": \"Fabric purchase bill\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `purchaseOrderId` optional.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update Bill",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{lastBillId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{lastBillId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"paid\",\n  \"notes\": \"Cleared via bank transfer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Delete Bill",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bills/{{lastBillId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bills",
+                "{{lastBillId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "description": {
+        "content": "Admin-only payments ledger. `paymentType` = `incoming` (customer se) | `outgoing` (vendor ko).",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "paymentType",
+                  "value": ""
+                },
+                {
+                  "key": "paymentMethod",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastPaymentId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastPaymentId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Payment By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{lastPaymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "{{lastPaymentId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentType\": \"incoming\",\n  \"amount\": 2499,\n  \"paymentMethod\": \"upi\",\n  \"contactId\": \"{{lastVendorId}}\",\n  \"invoiceId\": \"{{lastInvoiceId}}\",\n  \"paidAt\": \"2026-09-30\",\n  \"referenceNumber\": \"UPI-9876543210\",\n  \"notes\": \"Order payment received\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `paymentMethod` = cash | bank_transfer | upi | cheque | card | other. Incoming customer payment ke liye `contactId` me customer contact bhejein.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update Payment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{lastPaymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "{{lastPaymentId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2600,\n  \"paymentMethod\": \"bank_transfer\",\n  \"notes\": \"Amount corrected after reconciliation\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Delete Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{lastPaymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "{{lastPaymentId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Terms",
+      "description": {
+        "content": "Admin-only payment terms (e.g. Net 15/30/45, Advance).",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List Payment Terms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-terms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment-terms"
+              ],
+              "query": [
+                {
+                  "key": "includeInactive",
+                  "value": "false",
+                  "description": "true bhejein to inactive terms bhi aayenge"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastTermId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastTermId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Payment Term By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-terms/{{lastTermId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment-terms",
+                "{{lastTermId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Create Payment Term",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment-terms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment-terms"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Net 45\",\n  \"days\": 45,\n  \"description\": \"Payment 45 days after invoice\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update Payment Term",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment-terms/{{lastTermId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment-terms",
+                "{{lastTermId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Net 30\",\n  \"days\": 30,\n  \"description\": \"Standard 30 day credit\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Delete Payment Term",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-terms/{{lastTermId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment-terms",
+                "{{lastTermId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Discounts / Coupons",
+      "description": {
+        "content": "Coupon engine. **Preview Coupon** public hai (cart page), baaki admin-only.\n\nSeeded codes: FIRST20, SAVE10, FLAT500, APPAREL20, WELCOME10, SAVE500",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Preview Coupon (Public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/discount-offers/preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discount-offers",
+                "preview"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"FIRST20\",\n  \"subtotal\": 2499\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": {
+              "content": "Public — checkout page pe coupon validate karne ke liye. Returns discount breakdown.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: List Coupons",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/discount-offers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discount-offers"
+              ],
+              "query": [
+                {
+                  "key": "includeInactive",
+                  "value": "false"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastDiscountId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastDiscountId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: Get Coupon By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/discount-offers/{{lastDiscountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discount-offers",
+                "{{lastDiscountId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Create Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/discount-offers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discount-offers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"DIWALI25\",\n  \"description\": \"25% off Diwali sale\",\n  \"discountType\": \"percent\",\n  \"discountValue\": 25,\n  \"minOrderAmount\": 1999,\n  \"maxUses\": 100,\n  \"validFrom\": \"2026-10-15\",\n  \"validUntil\": \"2026-11-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `discountType` = `percent` | `fixed`.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Update Coupon",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/discount-offers/{{lastDiscountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discount-offers",
+                "{{lastDiscountId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Delete Coupon",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/discount-offers/{{lastDiscountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discount-offers",
+                "{{lastDiscountId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": {
+        "content": "Signed-in user ke notifications (admin ko saari dikhti hain). Broadcast sirf admin.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "List My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "unreadOnly",
+                  "value": "false",
+                  "description": "true = sirf unread"
+                }
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user.",
+              "type": "text/markdown"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const arr = Array.isArray(res) ? res : (res.data || res.items || []);",
+                  "if (arr.length && arr[0]._id) pm.collectionVariables.set('lastNotificationId', arr[0]._id);",
+                  "console.log(arr.length ? 'lastNotificationId = ' + arr[0]._id : 'Empty response - run seed script or add data first');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user. Returns `{ count }` — badge ke liye.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Mark All As Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Admin: Broadcast Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Diwali Sale is Live!\",\n  \"message\": \"Flat 25% off on all readymade garments till Nov 15.\",\n  \"type\": \"marketing\",\n  \"priority\": \"low\",\n  \"actionUrl\": \"/products\",\n  \"actionText\": \"Shop Now\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. `type` = order | inventory | payment | customer | system | marketing. `userId` bhejein to targeted warna broadcast.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Mark One As Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{lastNotificationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{lastNotificationId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"read\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": {
+              "content": "Any authenticated user.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{lastNotificationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{lastNotificationId}}"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "description": {
+        "content": "Per-user settings (store/notifications/appearance). Any authenticated user.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Get My Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "description": {
+              "content": "Any authenticated user.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Update My Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store\": {\n    \"storeName\": \"ApparelDesk\"\n  },\n  \"notifications\": {\n    \"emailOrderAlerts\": true\n  },\n  \"appearance\": {\n    \"theme\": \"dark\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": {
+              "content": "Any authenticated user. Partial update supported.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": {
+        "content": "Admin-only dashboard aggregates.",
+        "type": "text/markdown"
+      },
+      "item": [
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "stats"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. KPI cards ka data.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Recent Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/recent-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "recent-orders"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Top Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/top-products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "top-products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token.",
+              "type": "text/markdown"
+            }
+          }
+        },
+        {
+          "name": "Monthly Sales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/monthly-sales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "monthly-sales"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": {
+              "content": "Requires **admin** token. Sales chart ka data.",
+              "type": "text/markdown"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
