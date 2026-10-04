@@ -17,6 +17,8 @@ ApparelDesk lets a garment/apparel business run its **entire retail operation** 
 - [Environment Variables](#environment-variables)
 - [Demo Accounts](#demo-accounts)
 - [API Reference](#api-reference)
+- [Postman Collection](#postman-collection)
+- [Documentation (Docs/)](#documentation-docs)
 - [Data Model](#data-model)
 - [Security](#security)
 - [Testing](#testing)
@@ -398,6 +400,43 @@ Admin-only routes are marked **🔒 admin**.
 - **Server-authoritative pricing** — cart totals, discounts, and stock are computed and mutated only in the API.
 - **Hardening** — Helmet headers, strict CORS allow-list, and global rate limiting (300 requests/min/IP).
 - **Secrets** — real secrets only in gitignored `.env.local` / `server/.env`; `.env.example` files stay secret-free.
+
+---
+
+## Postman Collection
+
+A ready-to-import Postman collection covering **all 75 API routes in 15 folders** ships in the repo — the same file in two places:
+
+- [`postman/postman.json`](postman/postman.json)
+- [`server/postman/postman.json`](server/postman/postman.json)
+
+**Import:** Postman → *Import* → select the file (or drag it into Postman).
+
+**Quick start order:**
+
+1. `Health ▸ Health Check` — confirm the API is up
+2. `Auth ▸ Login (Admin)` — saves `{{adminToken}}` automatically
+3. `Auth ▸ Login (Customer)` — saves `{{token}}` automatically
+4. `Products ▸ Public List` — saves `{{lastProductId}}`
+5. `Contacts ▸ List Vendors` — saves `{{lastVendorId}}`
+6. `Orders ▸ Checkout` — saves `{{lastOrderId}}`
+
+After this, every folder runs out of the box — collection variables (`baseUrl`, tokens, ids) are captured by the login/list/checkout test scripts. Admin-only requests use `{{adminToken}}`; public requests (health, register, public products, coupon preview) need no auth. Switch `baseUrl` to `https://appareldesk-api.onrender.com/api` to test production.
+
+---
+
+## Documentation (Docs/)
+
+Product and engineering documentation lives in [`Docs/`](Docs/):
+
+| File | Contents |
+|---|---|
+| [`PRD.md`](Docs/PRD.md) | Product requirements — overview, problem, goals, users, MVP scope |
+| [`ARCHITECTURE.md`](Docs/ARCHITECTURE.md) | System architecture, tech stack, folder structure, key decisions |
+| [`DESIGN.md`](Docs/DESIGN.md) | Design system — palette, typography, components, badge styles |
+| [`RULES.md`](Docs/RULES.md) | Development rules for AI & human collaboration |
+| [`TASKS.md`](Docs/TASKS.md) | Task breakdown & development plan with status tracking |
+| [`MEMORY.md`](Docs/MEMORY.md) | Project memory — current state, gotchas, next steps |
 
 ---
 
