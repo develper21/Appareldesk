@@ -442,6 +442,25 @@ Product and engineering documentation lives in [`Docs/`](Docs/):
 
 ## Testing
 
+### Unit tests (125 tests, fully mocked — no DB/server needed)
+
+Frontend (Vitest + React Testing Library, 43 tests) and backend (Jest + ts-jest, 82 tests) are kept **completely separate**:
+
+```bash
+npm test                 # frontend: vitest run (cart, wishlist, cn, api client, NavLink, StatsCard)
+npm run test:watch       # frontend watch mode
+
+cd server
+npm test                 # backend: jest (auth, orders, products, wishlist, discount-offers, guards, DTOs)
+npm run test:cov         # coverage report
+```
+
+Backend suites cover: auth register/login/profile/password flows, checkout math (coupon + tax + stock
+decrement), storefront filters & pagination, wishlist logic, discount preview, both auth guards and
+critical DTO validation (including the `forbidNonWhitelisted` PATCH regression guard).
+
+### E2E scripts (curl-based, boots its own server)
+
 Each script below starts its own API server, runs assertions with `curl`, and shuts it down — no manual server management needed:
 
 ```bash
@@ -472,6 +491,18 @@ npx tsc --noEmit -p tsconfig.app.json   # frontend
 cd server && npx tsc --noEmit           # backend
 ```
 
+### CI pipeline ([.github/workflows/ci.yml](.github/workflows/ci.yml))
+
+Runs on every push/PR to `main` — **two parallel jobs**, each with install → lint → test → build:
+
+| Job | Install | Lint | Test | Build | Artifact |
+|---|---|---|---|---|---|
+| **frontend** | `npm ci` | `npm run lint` | `vitest run` | `vite build` | `frontend-dist` |
+| **backend** | `npm ci` (server/) | `npm run lint` | `jest` | `nest build` | `server-dist` |
+
+Unit tests are fully mocked, so CI needs no MongoDB service. Node 20, npm caching per lockfile, and a
+concurrency group (superseded runs cancel automatically).
+
 ---
 
 ## Scripts
@@ -489,7 +520,7 @@ cd server && npx tsc --noEmit           # backend
 
 ### Server (`server/package.json`)
 
-`start`, `start:dev`, `start:debug`, `start:prod`, `build`, `lint`, `seed`.
+`start`, `start:dev`, `start:debug`, `start:prod`, `build`, `lint`, `test`, `test:watch`, `test:cov`, `seed`.
 
 ---
 
