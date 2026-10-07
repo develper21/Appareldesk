@@ -7,8 +7,8 @@
 | | | |
 |:---:|:---:|:---:|
 | 📊 **Total Tasks** | ✅ **Completed** | 🔄 **In Progress** |
-| **38** | **32** | **2** |
-| ▓▓▓▓▓▓▓▓░░ 84% | ▓▓▓▓▓▓▓▓░░ 84% | ▓░░░░░░░░░ 5% |
+| **40** | **35** | **1** |
+| ▓▓▓▓▓▓▓▓▓░ 87% | ▓▓▓▓▓▓▓▓▓░ 87% | ▓░░░░░░░░░ 2% |
 
 ---
 
@@ -105,7 +105,9 @@ Polish, verification and go-live tasks.
 | 7.1 | Commit & push deploy fixes → retrigger Render + Netlify | 🔴 High | 🔄 In Progress | Fixes on disk, awaiting push |
 | 7.2 | Post-deploy smoke test on production URLs | 🔴 High | ⬜ Pending | Use Postman with prod `baseUrl` |
 | 7.3 | Rate limiting + request logging on API | 🟡 Medium | ⬜ Pending | helmet already on; add throttler |
-| 7.4 | Frontend unit tests (Vitest + RTL) | 🟢 Low | ⬜ Pending | Cart & wishlist logic first |
+| 7.4 | Frontend unit tests (Vitest + React Testing Library) | 🔴 High | ✅ Completed | **43 tests green** — cart, wishlist, cn, api client, NavLink, StatsCard |
+| 7.5 | Backend unit tests (Jest + ts-jest) | 🔴 High | ✅ Completed | **82 tests green** — auth, orders, products, wishlist, discounts, guards, DTOs |
+| 7.6 | CI pipeline (`.github/workflows/ci.yml`) | 🔴 High | ✅ Completed | Separate FE & BE jobs: install → lint → test → build on Node 20 |
 
 ---
 

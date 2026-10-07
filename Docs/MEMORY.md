@@ -7,8 +7,8 @@
 | | | |
 |:---:|:---:|:---:|
 | 📅 **Last Updated** | 👤 **Current Phase** | 🚀 **Deployment** |
-| **Sep 30, 2026** | **Phase 7** | ⏳ Awaiting push |
-| Deploy fixes verified locally | Hardening & Launch | Render + Netlify pending |
+| **Oct 7, 2026** | **Phase 7** | ⏳ Awaiting push |
+| Tests + CI added | Hardening & Launch | Render + Netlify pending |
 
 ---
 
@@ -24,7 +24,9 @@
 - ✅ Notifications & settings modules completed
 - ✅ Postman collection (75 requests / 15 folders) committed in `postman/` + `server/postman/`
 - ✅ Docs suite created (`Docs/`: PRD, Architecture, Design, Rules, Tasks, Memory)
-- ✅ Lint clean: frontend 0 errors / 4 warnings, server 0 errors / 52 warnings
+- ✅ Unit tests completed — backend **82/82** (Jest), frontend **43/43** (Vitest + RTL), fully mocked
+- ✅ CI pipeline added — `.github/workflows/ci.yml`, separate FE & BE jobs (install → lint → test → build)
+- ✅ Lint clean: frontend 0 errors / 4 warnings, server 0 errors / 114 warnings
 - 🔄 Deploy fixes on disk — **needs commit + push** to retrigger Render & Netlify
 
 ---
@@ -51,6 +53,9 @@
 | 6.5 | README + full documentation | Feb 16, 2026 |
 | 6.6 | Postman collections (75 requests) | Sep 30, 2026 |
 | 6.7 | Docs suite (this folder) | Sep 30, 2026 |
+| 7.4 | Frontend unit tests — 43/43 green (Vitest + RTL) | Oct 7, 2026 |
+| 7.5 | Backend unit tests — 82/82 green (Jest + ts-jest) | Oct 7, 2026 |
+| 7.6 | CI pipeline — separate FE & BE jobs | Oct 7, 2026 |
 
 ## 🔄 In Progress
 
@@ -75,16 +80,20 @@
 - 🌱 Seed: `npm run seed` (dev `.env.local`) · `npm run seed:prod` (Atlas `.env.production`).
 - 🌐 Frontend dev API: `VITE_API_URL=http://localhost:3001/api` (`.env.local`); prod: `https://appareldesk-api.onrender.com/api` (`.env.production`).
 - 🧪 e2e scripts: `server/scripts/e2e-*.sh` — server change ke baad `e2e-atlas.sh` run karein.
+- 🧪 **Unit tests:** spec files source ke bagal me hain (`*.spec.ts`), imports relative (`./`, `../`) — `@/` alias sirf frontend me. Jest config `server/jest.config.json`, Vitest config `vitest.config.ts` + `src/test/setup.ts` (matchMedia/ResizeObserver stubs).
+- 🧪 **Wishlist tests:** `@/lib/api` aur `@/lib/api/client` dono ko `vi.mock()` karna padta hai (tokenStorage.get pe depend karta hai guest vs signed-in mode).
+- 🧪 **Cart tests:** localStorage clear karna mat bhoolo (`beforeEach`), warna restore-test state leak karega.
+- 🚦 **CI:** unit tests fully mocked hain — GitHub Actions ko MongoDB service ki zaroorat **nahi**. Push/PR on `main` par dono jobs parallel chalte hain.
 - 🔍 ESLint: root config `eslint.config.js` hai (`.ts` wala delete), server `eslint.config.mjs`.
 
 ---
 
 ## 🗺️ Next Steps
 
-1. Commit + push → dono deploys green hone tak wait karein.
+1. Commit + push → dono deploys green hone tak wait karein (CI bhi saath me chalega).
 2. Postman se production smoke test (Section 🔄).
 3. Rate limiting + request logging (Phase 7.3).
-4. Frontend unit tests (Phase 7.4).
+4. Coverage badges + E2E tests CI me add karna (abhi locally `server/scripts/e2e-*.sh`).
 
 ---
 
