@@ -1,0 +1,90 @@
+# ApparelDesk CI Pipeline
+# Separate jobs for frontend (React + Vite) and backend (NestJS) —
+# each runs: install → lint → test → build.
+# Unit tests are fully mocked (no MongoDB service needed); integration/e2e
+# suites run locally against Atlas via server/scripts/e2e-*.sh.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend — lint · test · build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test (Vitest)
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+
+  backend:
+    name: Backend — lint · test · build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test (Jest unit)
+        run: npm run test
+
+      - name: Build (nest build)
+        run: npm run build
+
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-dist
+          path: server/dist/
+          retention-days: 7
+          if-no-files-found: error
