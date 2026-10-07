@@ -27,3 +27,4 @@ dist-ssr
 !.env.example
 .local
 .env.productino
+.freebuff
